@@ -1,0 +1,107 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start
+    volumes:
+      - .:/app
+      - ${PROJECT_NAME}_static_volume:/app/staticfiles
+      - ${PROJECT_NAME}_media_volume:/app/mediafiles
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - sso
+
+  client:
+    build:
+      context: ./client
+      dockerfile: ./docker/local/Dockerfile
+    restart: on-failure
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - sso
+
+  db:
+    image: citusdata/citus
+    ports:
+      - "5430:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      # - DBUSER=${DB_USER}
+      # - DBPASS=${DB_PASS}
+    volumes:
+      - ${PROJECT_NAME}_postgres_data:/var/lib/postgresql/data/
+      # - ./docker/local/postgres/start.sh:/docker-entrypoint-initdb.d/start.sh
+    networks:
+      - sso
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - sso
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-celeryworker
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - sso
+
+  flower:
+    build:
+      context: .
+      dockerfile: ./docker/local/django/Dockerfile
+    command: /start-flower
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - "5557:5555"
+    depends_on:
+      - redis
+      - db
+    networks:
+      - sso
+
+  nginx:
+    restart: always
+    depends_on:
+      - api
+    volumes:
+      - ${PROJECT_NAME}_static_volume:/app/staticfiles
+      - ${PROJECT_NAME}_media_volume:/app/mediafiles
+    build:
+      context: ./docker/local/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    networks:
+      - sso
+
+networks:
+  sso:
+    driver: bridge
+
+volumes:
+  sso_postgres_data:
+  sso_static_volume:
+  sso_media_volume:
+
+

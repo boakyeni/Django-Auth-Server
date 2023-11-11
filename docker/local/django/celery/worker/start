@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -o errexit
+
+set -o nounset
+
+watchmedo auto-restart -d sso_config/ -p "*.py" -- celery -A sso_config worker --loglevel=info
