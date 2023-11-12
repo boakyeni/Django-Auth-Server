@@ -9,25 +9,19 @@ export const dynamic = 'force-dynamic';
 
 const Page = ({ searchParams }) => {
 
-    const [slow, setSlow] = useState(null)
-
+    const [data, setData] = useState([])
     useEffect(() => {
 
+
         const loader = async () => {
+
             try {
-                const config = {
-                    headers: {
-                        "Content-Type": "application/json",
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0',
-                    },
-                };
 
-                const res = await axios.get("http://localhost:8080/api/v1/auth/get-stuff", config)
-
-                setSlow(res.data.stuff)
-
+                const response = await axios.post("http://localhost:8080/token", { code: searchParams.code })
+                setData(response.data);
+                if (response.data) {
+                    localStorage.setItem("access_token", JSON.stringify(response.data.access_token));
+                }
             }
             catch (e) {
                 console.error("Error fetching data:", e);
@@ -39,7 +33,7 @@ const Page = ({ searchParams }) => {
     return (
         <Suspense fallback={<Loading />}>
             <h1>NAV</h1>
-            <div>{slow}</div>
+            <div>{data.access_code}</div>
         </Suspense>
 
     )
