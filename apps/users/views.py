@@ -124,6 +124,24 @@ class UserRegister(OAuthLibMixin, APIView):
         return Response(status=status.HTTP_403_FORBIDDEN)
 
 
+class UserLoginJSON(OAuthLibMixin, APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        data = request.data
+
+        user = authenticate(request, email=data["email"], password=data["password"])
+        if user is not None:
+            login(request, user)
+            # in Oauth2 flow upon login user should be redirected to /o/authorize/
+
+            return Response(
+                {"data": "User is now logged in"}, status=status.HTTP_200_OK
+            )
+        else:
+            raise AuthenticationFailed("Invalid Credentials")
+
+
 class UserLogin(OAuthLibMixin, APIView):
     permission_classes = (permissions.AllowAny,)
 
@@ -134,7 +152,7 @@ class UserLogin(OAuthLibMixin, APIView):
         if user is not None:
             login(request, user)
             # in Oauth2 flow upon login user should be redirected to /o/authorize/
-            print(request.session.get_expiry_date())
+
             return Response(
                 {"data": "User is now logged in"}, status=status.HTTP_200_OK
             )
