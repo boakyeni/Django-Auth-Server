@@ -181,3 +181,31 @@ class UserLogout(APIView):
 @permission_classes([AllowAny])
 def get_stuff(request):
     return Response({"stuff": "stuff gotten"})
+
+
+class ReturnToken(APIView):
+    """
+    DOMAIN USED HERE CHECK WHEN PUT TO MAIN
+    """
+
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        data = request.data
+        data["client_id"] = env("CLIENT_ID")
+        data["client_secret"] = env("CLIENT_SECRET")
+        data["code_verifier"] = env("CODE_VERIFIER")
+        data["grant_type"] = "authorization_code"
+        try:
+            response = requests.post(
+                env("DJANGO_DOMAIN") + "/o/token/",
+                data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+            response = response.json()
+
+            rest_response = Response(response, status=status.HTTP_200_OK)
+
+            return rest_response
+        except requests.exceptions.HTTPError as err:
+            return Response(err)

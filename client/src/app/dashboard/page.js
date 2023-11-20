@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 
 const Page = ({ searchParams }) => {
-
+    /*MAKE CODE TO PREVENT LOADING OF PAGE UNTIL ACCESS TOKEN IS IN STORAGE */
     const [data, setData] = useState([])
     useEffect(() => {
 
@@ -17,7 +17,7 @@ const Page = ({ searchParams }) => {
 
             try {
 
-                const response = await axios.post("http://localhost:8080/token", { code: searchParams.code })
+                const response = await axios.post("http://localhost:8080/token", { code: searchParams.code }, { withCredentials: true })
                 setData(response.data);
                 if (response.data) {
                     localStorage.setItem("access_token", JSON.stringify(response.data.access_token));

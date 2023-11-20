@@ -181,4 +181,4 @@ DJOSER = {
     "TOKEN_MODEL": "oauth2_provider.models.AccessToken",
 }
 
-LOGIN_URL = "/api/v1/auth/login/"
+LOGIN_URL = "/login/"

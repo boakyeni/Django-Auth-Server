@@ -1,30 +1,42 @@
-FROM python:3.11-slim-buster
+FROM python:3.11-slim-buster as builder
 
-ENV APP_HOME=/app
-RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-WORKDIR $APP_HOME
+ENV APP_HOME=/app \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
 
 LABEL maintainer='knimako84@gmail.com'
 LABEL description="Development image for SSO Project"
 
-ENV PYTHONDONTWRITEBYTECODE 1
-
-ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update \
     && apt-get install -y build-essential \
-    && apt-get install -y libpq-dev \
+    && apt-get install -y python3-dev libpq-dev libpq5 python3-venv \
     && apt-get install -y gettext \
-    && apt-get install -y netcat gcc postgresql libmagic-dev\
+    && apt-get install -y netcat-openbsd gcc postgresql libmagic-dev \
     && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install poetry==1.7.1
 
-RUN pip3 install --upgrade pip
 
-COPY Pipfile /app/Pipfile
-COPY Pipfile.lock /app/Pipfile.lock
-RUN pip3 install pipenv && pipenv install --dev --system --deploy
+WORKDIR $APP_HOME
+
+COPY pyproject.toml poetry.lock ./
+
+RUN mkdir $APP_HOME/staticfiles
+
+# Install project dependencies
+RUN poetry config virtualenvs.create false && poetry install && rm -rf $POETRY_CACHE_DIR
+
+# FROM python:3.11-slim-buster as runtime
+
+# ENV VIRTUAL_ENV=/app/.venv \
+#     PATH="/app/.venv/bin:$PATH"
+
+# COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+
 
 COPY ./docker/local/django/entrypoint /entrypoint
 
@@ -42,7 +54,6 @@ RUN chmod +x /start-celeryworker
 COPY ./docker/local/django/celery/flower/start /start-flower
 RUN sed -i 's/\r$//g' /start-flower
 RUN chmod +x /start-flower
-
 
 
 ENTRYPOINT [ "/entrypoint" ]
