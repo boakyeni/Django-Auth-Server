@@ -21,6 +21,7 @@ services:
       context: ./client
       dockerfile: ./docker/local/Dockerfile
     restart: always
+    # comment out volumes during production
     volumes:
       - ./client:/app
       - /app/node_modules

@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import Image from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,7 +28,9 @@ const Page = () => {
 
 
         try {
+            // oauth expects user to be logged in
             const response = await axios.post(process.env.NEXT_PUBLIC_DOMAIN + "/api/v1/auth/login/", userData, config)
+
             const params = new URLSearchParams({
                 response_type: "code",
                 code_challenge: process.env.NEXT_PUBLIC_CODE_CHALLENGE,
@@ -73,7 +76,7 @@ const Page = () => {
         <section className="bg-white">
             <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
                 <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900">
-                    <img className="w-8 h-8 mr-2" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" />
+                    <Image className="w-8 h-8 mr-2" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/logo.svg" alt="logo" width={50} height={50} />
                     Bunzi
                 </a>
                 <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">

@@ -28,7 +28,7 @@ const Page = ({ searchParams }) => {
             }
         }
         loader()
-    }, [])
+    }, [searchParams.code])
 
     return (
         <Suspense fallback={<Loading />}>
